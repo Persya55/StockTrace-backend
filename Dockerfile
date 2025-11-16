@@ -1,6 +1,6 @@
 # --- Etapa 1: Construcción (Build) ---
-# Usamos una imagen de Maven con Java 21 para compilar el proyecto
-FROM maven:3.8-openjdk-21 AS build
+# Usamos una imagen estándar de Maven con una versión de JDK 21 (Eclipse Temurin)
+FROM maven:3-eclipse-temurin-21 AS build
 
 # Establecemos el directorio de trabajo
 WORKDIR /app
@@ -10,16 +10,13 @@ COPY pom.xml .
 COPY .mvn/ .mvn
 COPY mvnw .
 
-# Descargamos dependencias (opcional pero acelera)
-# RUN ./mvnw dependency:go-offline
-
 # Copiamos el resto del código fuente y construimos el .jar
 COPY src ./src
 RUN ./mvnw clean install -DskipTests
 
 # --- Etapa 2: Ejecución (Run) ---
-# Usamos una imagen ligera de solo Java 21 para ejecutar
-FROM openjdk:21-jre-slim
+# Usamos una imagen ligera de solo Java 21 JRE (Eclipse Temurin)
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
