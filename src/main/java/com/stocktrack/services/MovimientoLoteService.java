@@ -29,16 +29,15 @@ public class MovimientoLoteService {
     @Autowired
     private MovimientoLoteRepository movimientoLoteRepository;
 
-
     @Transactional
-    public MovimientoResponseDTO ubicarLote(MovimientoRequestDTO request) {    
+    public MovimientoResponseDTO ubicarLote(MovimientoRequestDTO request) {
         // 1. Buscar las entidades
         LoteStock lote = loteStockRepository.findById(request.getLoteId())
                 .orElseThrow(() -> new RuntimeException("LoteStock no encontrado"));
-        
+
         Contenedor contenedor = contenedorRepository.findById(request.getContenedorId())
                 .orElseThrow(() -> new RuntimeException("Contenedor no encontrado"));
-        
+
         Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
@@ -46,24 +45,27 @@ public class MovimientoLoteService {
         lote.setContenedor(contenedor);
         loteStockRepository.save(lote);
 
+        // Actualizar estado del contenedor
+        contenedor.setEstatus("Lleno");
+        contenedorRepository.save(contenedor);
+
         // 3. Crear el registro del Movimiento (para el KPI TO)
         MovimientoLote movimiento = new MovimientoLote();
         movimiento.setLoteStock(lote);
         movimiento.setUsuario(usuario);
-        
+
         // 4. ¡KPI! Registrar el Tiempo de Organización (TO)
         movimiento.setFechaHoraOrganizacionTo(LocalDateTime.now());
-        
+
         MovimientoLote movimientoGuardado = movimientoLoteRepository.save(movimiento);
 
         // 5. Devolver la respuesta
         return new MovimientoResponseDTO(
-            movimientoGuardado.getId(),
-            lote.getId(),
-            contenedor.getId(),
-            contenedor.getNombre(),
-            usuario.getId(),
-            movimientoGuardado.getFechaHoraOrganizacionTo()
-        );
+                movimientoGuardado.getId(),
+                lote.getId(),
+                contenedor.getId(),
+                contenedor.getNombre(),
+                usuario.getId(),
+                movimientoGuardado.getFechaHoraOrganizacionTo());
     }
 }

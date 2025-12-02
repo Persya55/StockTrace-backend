@@ -17,7 +17,7 @@ import com.stocktrack.repository.UbicacionRepository;
 public class ContenedorService {
     @Autowired
     private ContenedorRepository contenedorRepository;
-    
+
     @Autowired
     private UbicacionRepository ubicacionRepository;
 
@@ -30,6 +30,7 @@ public class ContenedorService {
         // Nos aseguramos que la Ubicacion no sea nula antes de llamar a getId()
         if (contenedor.getUbicacion() != null) {
             dto.setUbicacionId(contenedor.getUbicacion().getId());
+            dto.setUbicacionNombre(contenedor.getUbicacion().getNombre());
         }
         return dto;
     }
@@ -38,11 +39,15 @@ public class ContenedorService {
         Contenedor contenedor = new Contenedor();
 
         contenedor.setCodigoQrId(dto.getCodigoQrId());
-        contenedor.setNombre(dto.getNombre());  
+        contenedor.setNombre(dto.getNombre());
         contenedor.setEstatus(dto.getEstatus());
         // La asignación de la ubicación se manejará en otro servicio o capa
         return contenedor;
 
+    }
+
+    public String generateRandomQrCode() {
+        return "CONT-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 
     public ContenedorDTO createContenedor(ContenedorDTO dto) {
@@ -50,11 +55,19 @@ public class ContenedorService {
         Ubicacion ubicacion = ubicacionRepository.findById(dto.getUbicacionId())
                 .orElseThrow(() -> new RuntimeException("Ubicacion no encontrada"));
 
+        if (dto.getCodigoQrId() == null || dto.getCodigoQrId().isEmpty()) {
+            dto.setCodigoQrId(generateRandomQrCode());
+        }
+
+        if (dto.getEstatus() == null || dto.getEstatus().isEmpty()) {
+            dto.setEstatus("Vacio");
+        }
+
         Contenedor c = convertToEntity(dto);
-        
+
         // Adjuntamos la entidad Ubicacion completa
-        c.setUbicacion(ubicacion); 
-        
+        c.setUbicacion(ubicacion);
+
         c = contenedorRepository.save(c);
         return convertToDTO(c);
     }
@@ -64,15 +77,17 @@ public class ContenedorService {
                 .orElseThrow(() -> new RuntimeException("Contenedor no encontrado"));
         return convertToDTO(c);
     }
+
     public List<ContenedorDTO> getAllContenedores() {
         return contenedorRepository.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
+
     public ContenedorDTO updateContenedor(Long id, ContenedorDTO dto) {
         Contenedor c = contenedorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Contenedor no encontrado"));
-        
+
         c.setCodigoQrId(dto.getCodigoQrId());
         c.setNombre(dto.getNombre());
         c.setEstatus(dto.getEstatus());
@@ -83,13 +98,13 @@ public class ContenedorService {
                     .orElseThrow(() -> new RuntimeException("Ubicacion no encontrada"));
             c.setUbicacion(nuevaUbicacion);
         }
-        
+
         c = contenedorRepository.save(c);
         return convertToDTO(c);
     }
 
     public void deleteContenedor(Long id) {
-        if(!contenedorRepository.existsById(id)) {
+        if (!contenedorRepository.existsById(id)) {
             throw new RuntimeException("Contenedor no encontrado");
         }
         contenedorRepository.deleteById(id);

@@ -18,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-
-
 @RestController
 @RequestMapping("/contenedores")
 @CrossOrigin(origins = "*")
@@ -29,20 +27,23 @@ public class ContenedorController {
 
     @PostMapping
     public ResponseEntity<ContenedorDTO> createContenedor(@RequestBody ContenedorDTO dto) {
-        return new ResponseEntity <>(contenedorService.createContenedor(dto), HttpStatus.CREATED);
+        return new ResponseEntity<>(contenedorService.createContenedor(dto), HttpStatus.CREATED);
     }
-    
+
+    @GetMapping("/generate-qr")
+    public ResponseEntity<String> generateQrCode() {
+        return ResponseEntity.ok(contenedorService.generateRandomQrCode());
+    }
+
     @GetMapping
     public ResponseEntity<List<ContenedorDTO>> getAllContenedores() {
         return ResponseEntity.ok(contenedorService.getAllContenedores());
     }
-    
 
     @GetMapping("/{id}")
     public ResponseEntity<ContenedorDTO> getContenedorById(@PathVariable Long id) {
         return ResponseEntity.ok(contenedorService.getContenedorById(id));
     }
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteContenedor(@PathVariable Long id) {
@@ -51,8 +52,8 @@ public class ContenedorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ContenedorDTO> updateContenedor (@PathVariable Long id, 
-                                                        @RequestBody ContenedorDTO dto){
+    public ResponseEntity<ContenedorDTO> updateContenedor(@PathVariable Long id,
+            @RequestBody ContenedorDTO dto) {
         return ResponseEntity.ok(contenedorService.updateContenedor(id, dto));
-    }   
+    }
 }
